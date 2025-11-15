@@ -54,7 +54,7 @@ resolving dependencies.
         <dependency>
             <groupId>me.tytoo</groupId>
             <artifactId>jcefmaven</artifactId>
-            <version>141.0.10</version>
+            <version>141.0.10-tytoo</version>
         </dependency>
     </dependencies>
 </project>
@@ -74,7 +74,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'me.tytoo:jcefmaven:141.0.10'
+    implementation 'me.tytoo:jcefmaven:141.0.10-tytoo'
 }
 ```
 
@@ -104,13 +104,23 @@ Once you added your dependencies, you need to fire up jcefmaven in your code. No
 CefAppBuilder builder = new CefAppBuilder();
 
 //Configure the builder instance
-builder.setInstallDir(new File("jcef-bundle")); //Default
-builder.setProgressHandler(new ConsoleProgressHandler()); //Default
-builder.addJcefArgs("--disable-gpu"); //Just an example
-builder.getCefSettings().windowless_rendering_enabled = true; //Default - select OSR mode
+builder.
+
+setInstallDir(new File("jcef-bundle")); //Default
+        builder.
+
+setProgressHandler(new ConsoleProgressHandler()); //Default
+        builder.
+
+addJcefArgs("--disable-gpu"); //Just an example
+builder.
+
+getCefSettings().windowless_rendering_enabled =true; //Default - select OSR mode
 
 //Set an app handler. Do not use CefApp.addAppHandler(...), it will break your code on MacOSX!
-builder.setAppHandler(new MavenCefAppHandlerAdapter(){...});
+        builder.
+
+setAppHandler(new MavenCefAppHandlerAdapter() {...});
 
 //Build a CefApp instance using the configuration above
 CefApp app = builder.build();
@@ -176,3 +186,4 @@ To use OSR (off-screen render) mode, add these flags for JOGL:
 
 Please only report bugs here that are related to the maven artifacts.
 Please report bugs in JCEF/CEF to the [corresponding repository on Bitbucket](https://bitbucket.org/chromiumembedded/).
+
