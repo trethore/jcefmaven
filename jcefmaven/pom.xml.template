@@ -5,30 +5,30 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- This file is generated automatically! Do not edit! -->
-    <!-- For further information, please refer to https://github.com/jcefmaven/jcefmaven -->
+    <!-- For further information, please refer to https://github.com/trethore/jcefmaven -->
 
-    <groupId>me.friwi</groupId>
+    <groupId>me.tytoo</groupId>
     <artifactId>jcefmaven</artifactId>
     <version>{mvn_version}</version>
 
     <packaging>jar</packaging>    
     <name>JCef Maven</name>
     <description>This package provides wrappers to initialize the Java Chromium Embedded Framework</description>
-    <url>https://github.com/jcefmaven/jcefmaven/</url>
+    <url>https://github.com/trethore/jcefmaven/</url>
     
     <licenses>
         <license>
             <name>Apache-2.0 License</name>
-            <url>https://github.com/jcefmaven/jcefmaven/blob/master/LICENSE</url>
+            <url>https://github.com/trethore/jcefmaven/blob/master/LICENSE</url>
         </license>
     </licenses>
     
     <developers>
         <developer>
-            <id>friwidev</id>
-            <name>FriwiDev</name>
-            <email>friwidev@gmail.com</email>
-            <url>https://github.com/FriwiDev</url>
+            <id>tytoo</id>
+            <name>Tytoo</name>
+            <email>tytoo@users.noreply.github.com</email>
+            <url>https://github.com/trethore</url>
             <roles>
                 <role>developer</role>
             </roles>
@@ -36,10 +36,10 @@
     </developers>
     
     <scm>
-        <connection>scm:git:https://github.com/jcefmaven/jcefmaven</connection>
-        <developerConnection>scm:git:https://github.com/jcefmaven/jcefmaven</developerConnection>
+        <connection>scm:git:https://github.com/trethore/jcefmaven</connection>
+        <developerConnection>scm:git:https://github.com/trethore/jcefmaven</developerConnection>
         <tag>HEAD</tag>
-        <url>https://github.com/jcefmaven/jcefmaven</url>
+        <url>https://github.com/trethore/jcefmaven</url>
     </scm>
 
     <properties>
@@ -50,7 +50,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>me.friwi</groupId>
+            <groupId>me.tytoo</groupId>
             <artifactId>jcef-api</artifactId>
             <version>{release_tag}</version>
         </dependency>

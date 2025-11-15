@@ -18,5 +18,8 @@ cd "$( dirname "$0" )"
 #Clean output dir
 rm -rf out
 
-#Run docker build
-docker compose -f docker-compose.yml up
+#Run docker build (force rebuild to pick up script changes)
+docker compose -f docker-compose.yml up --build
+
+#Organize exported artifacts on host
+./scripts/organize_out.sh out

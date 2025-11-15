@@ -62,7 +62,7 @@ echo "Generating sources and javadoc..."
 mkdir compile
 ./../scripts/fill_template.sh ../templates/natives/pom.xml compile/pom.xml
 cp -r ../templates/natives/src compile
-./../scripts/fill_template.sh ../templates/natives/src/main/java/me/friwi/jcefmaven/CefNativeBundle.java compile/src/main/java/me/friwi/jcefmaven/CefNativeBundle.java
+./../scripts/fill_template.sh ../templates/natives/src/main/java/me/trethore/jcefmaven/CefNativeBundle.java compile/src/main/java/me/trethore/jcefmaven/CefNativeBundle.java
 cd compile
 mvn clean package source:jar javadoc:jar
 cd ..

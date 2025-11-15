@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- This file is generated automatically! Do not edit! -->
-    <!-- For further information, please refer to https://github.com/jcefmaven/jcefmaven -->
+    <!-- For further information, please refer to https://github.com/trethore/jcefmaven -->
 
-    <groupId>me.friwi</groupId>
+    <groupId>me.tytoo</groupId>
     <artifactId>jcef-natives-{platform}</artifactId>
     <version>{release_tag}</version>
 
@@ -33,20 +33,20 @@
             </roles>
         </developer>
         <developer>
-            <id>friwidev</id>
-            <name>FriwiDev</name>
-            <email>friwidev@gmail.com</email>
-            <url>https://github.com/FriwiDev</url>
+            <id>tytoo</id>
+            <name>Tytoo</name>
+            <email>tytoo@users.noreply.github.com</email>
+            <url>https://github.com/trethore</url>
             <roles>
                 <role>providing binaries</role>
-                <role>maven maintainer</role>
+                <role>package maintainer</role>
             </roles>
         </developer>
     </developers>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/jcefmaven/jcefmaven/issues</url>
+        <url>https://github.com/trethore/jcefmaven/issues</url>
     </issueManagement>
 
     <scm>
@@ -55,7 +55,7 @@
         <tag>HEAD</tag>
         <url>https://bitbucket.org/chromiumembedded/java-cef</url>
     </scm>
-    
+
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>

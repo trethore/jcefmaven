@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 if [ ! $# -eq 1 ]
   then
     echo "Usage: ./generate_jogl.sh <artifact>"
@@ -8,97 +10,42 @@ if [ ! $# -eq 1 ]
     exit 1
 fi
 
-#CD to base dir of this repository
-cd "$( dirname "$0" )" && cd ..
+artifact=$1
+repo_root=$(cd "$( dirname "$0" )/.." && pwd)
+friwi_base="https://repo.maven.apache.org/maven2/me/friwi/$artifact/$jogl_build"
+lib_dir="$repo_root/libs/$artifact"
 
-#Clear build dir
+stage_artifact () {
+  local name=$1
+  local dest=$2
+  if [ -f "$lib_dir/$name" ]; then
+    echo "Using cached $lib_dir/$name"
+    cp "$lib_dir/$name" "$dest"
+  else
+    local url="$friwi_base/$name"
+    echo "Downloading $url"
+    curl -fsSL "$url" -o "$dest"
+  fi
+}
+
+#Prepare build dir
+cd "$repo_root"
 rm -rf build
 mkdir build
 cd build
 
-echo "Creating $1 with version $jogl_build..."
-export platform=*
-export release_download_url=$jogl_download
+echo "Staging $artifact version $jogl_build..."
+stage_artifact "$artifact-$jogl_build.jar" "$artifact-$jogl_build.jar"
+stage_artifact "$artifact-$jogl_build-sources.jar" "$artifact-$jogl_build-sources.jar"
+stage_artifact "$artifact-$jogl_build-javadoc.jar" "$artifact-$jogl_build-javadoc.jar"
 
-#Fetch artifact
-echo "Fetching artifacts..."
-curl -s -L -o $1.jar $jogl_download/$1.jar
-curl -s -L -o $1-natives-linux-aarch64.jar $jogl_download/$1-natives-linux-aarch64.jar
-curl -s -L -o $1-natives-linux-amd64.jar $jogl_download/$1-natives-linux-amd64.jar
-curl -s -L -o $1-natives-linux-armv6hf.jar $jogl_download/$1-natives-linux-armv6hf.jar
-curl -s -L -o $1-natives-linux-i586.jar $jogl_download/$1-natives-linux-i586.jar
-curl -s -L -o $1-natives-macosx-universal.jar $jogl_download/$1-natives-macosx-universal.jar
-curl -s -L -o $1-natives-windows-amd64.jar $jogl_download/$1-natives-windows-amd64.jar
-curl -s -L -o $1-natives-windows-i586.jar $jogl_download/$1-natives-windows-i586.jar
-
-#Extract artifacts
-echo "Extracting..."
-unzip '*.jar'
-rm *.jar
-
-#Remove meta-inf as it contains wrong hashes
-rm -r META-INF
-
-#Compress contents
-echo "Compressing package..."
-zip -r $1-$jogl_build.jar *
-
-#Generate a pom file
 echo "Generating pom..."
-./../scripts/fill_template.sh ../templates/$1/pom.xml $1-$jogl_build.pom
+./../scripts/fill_template.sh ../templates/$artifact/pom.xml $artifact-$jogl_build.pom
 
-#Build sources
-if [[ "$1" == "jogl-all" ]] ; then
-   git clone $jogl_git sources
-   cd sources
-   git checkout $jogl_commit
-   cd ..
-   mkdir exp
-   # Merge Sources
-   cp -r sources/src/jogl/classes/* exp
-   cp -r sources/src/newt/classes/* exp
-   cp -r sources/src/nativewindow/classes/* exp
-   cd exp
-else
-   git clone $gluegen_git sources
-   cd sources
-   git checkout $gluegen_commit
-   cd ..
-   mkdir exp
-   cp -r sources/src/java/* exp
-   cd exp
-   # Prune files
-   cd com/jogamp/gluegen && rm -rf *.java *.html ant *gram pcpp procaddress structgen && cd ../../..
-   cd jogamp && rm -rf android && cd ..
-   rm -rf net
-fi
-zip -r ../$1-$jogl_build-sources.jar *
-cd ..
-rm -rf exp sources
-
-#Build javadoc
-mkdir javadoc
-cd javadoc
-if [[ "$1" == "jogl-all" ]] ; then
-    curl -s -L -o javadoc.7z $jogl_download/../archive/jogl-javadoc.7z
-    7z x javadoc.7z
-    cd jogl/javadoc
-    zip -r ../../../$1-$jogl_build-javadoc.jar *
-else
-    curl -s -L -o javadoc.7z $jogl_download/../archive/gluegen-javadoc.7z
-    7z x javadoc.7z
-    cd gluegen/javadoc
-    zip -r ../../../$1-$jogl_build-javadoc.jar *
-fi
-cd ../../..
-rm -rf javadoc
-
-#Move built artifacts to export dir
 echo "Exporting artifacts..."
-mv $1-$jogl_build.jar /jcefout
-mv $1-$jogl_build-sources.jar /jcefout
-mv $1-$jogl_build-javadoc.jar /jcefout
-mv $1-$jogl_build.pom /jcefout
+mv $artifact-$jogl_build.jar /jcefout
+mv $artifact-$jogl_build-sources.jar /jcefout
+mv $artifact-$jogl_build-javadoc.jar /jcefout
+mv $artifact-$jogl_build.pom /jcefout
 
-#Done
-echo "Done generating $1 with version $jogl_build"
+echo "Done generating $artifact with version $jogl_build"
