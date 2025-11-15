@@ -12,13 +12,12 @@ fi
 export BUILD_META_URL=$1
 export MVN_VERSION=$2
 
-# Ensure docker containers run with the current host user to keep artifacts writable.
 if command -v id >/dev/null 2>&1; then
-  export JCEF_UID=${JCEF_UID:-$(id -u)}
-  export JCEF_GID=${JCEF_GID:-$(id -g)}
+  HOST_UID=$(id -u)
+  HOST_GID=$(id -g)
 else
-  export JCEF_UID=${JCEF_UID:-1000}
-  export JCEF_GID=${JCEF_GID:-1000}
+  HOST_UID=1000
+  HOST_GID=1000
 fi
 
 #CD to main dir of this repository
@@ -30,6 +29,9 @@ mkdir -p out
 
 #Run docker build (force rebuild to pick up script changes)
 docker compose -f docker-compose.yml up --build
+
+#Fix permissions on exported artifacts coming from the container
+docker compose -f docker-compose.yml run --rm --no-deps --entrypoint chown generate-artifacts -R "${HOST_UID}:${HOST_GID}" /jcefout
 
 #Organize exported artifacts on host
 bash scripts/organize_out.sh out
