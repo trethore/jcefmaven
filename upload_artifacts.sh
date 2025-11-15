@@ -16,10 +16,12 @@ repoId=$3
 #Set build info
 . scripts/set_build_info.sh $1 $4
 
-#Move artifacts to a non-protected folder
+#Move artifacts (jar/pom) to a non-protected folder, flattening structure
 rm -rf upload
 mkdir upload
-cp out/* upload/
+find out -type f \( -name "*.jar" -o -name "*.pom" \) -print0 | while IFS= read -r -d '' file; do
+  cp "$file" upload/
+done
 
 echo "Uploading GitHub Packages artifacts for $mvn_version..."
 
