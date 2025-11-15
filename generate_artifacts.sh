@@ -22,4 +22,5 @@ rm -rf out
 docker compose -f docker-compose.yml up --build
 
 #Organize exported artifacts on host
+chmod +x scripts/organize_out.sh
 ./scripts/organize_out.sh out
