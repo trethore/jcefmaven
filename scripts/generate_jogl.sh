@@ -12,7 +12,20 @@ fi
 
 artifact=$1
 repo_root=$(cd "$( dirname "$0" )/.." && pwd)
-friwi_base="https://repo.maven.apache.org/maven2/me/friwi/$artifact/$jogl_build"
+maven_repo_base="https://jogamp.org/deployment/maven"
+case "$artifact" in
+  jogl-all)
+    artifact_path="org/jogamp/jogl/$artifact/$jogl_build"
+    ;;
+  gluegen-rt)
+    artifact_path="org/jogamp/gluegen/$artifact/$jogl_build"
+    ;;
+  *)
+    echo "Unsupported JOGL artifact '$artifact'"
+    exit 1
+    ;;
+esac
+remote_base="$maven_repo_base/$artifact_path"
 lib_dir="$repo_root/libs/$artifact"
 
 stage_artifact () {
@@ -22,7 +35,7 @@ stage_artifact () {
     echo "Using cached $lib_dir/$name"
     cp "$lib_dir/$name" "$dest"
   else
-    local url="$friwi_base/$name"
+    local url="$remote_base/$name"
     echo "Downloading $url"
     curl -fsSL "$url" -o "$dest"
   fi
