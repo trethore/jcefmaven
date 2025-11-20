@@ -30,11 +30,11 @@ fi
 pathGroupId=$(sed 's|\.|\/|g' <<< $groupId)
 targetUrl=$repoUrl/$pathGroupId/$artifactId/$version/$artifactId-$version.jar
 
-#Auth for GitHub packages if credentials are present
+#Auth for GitHub packages if credentials are present (avoid unbound vars with set -u)
 authArgs=()
-if [[ -n "$GITHUB_USERNAME" && -n "$GITHUB_TOKEN" ]]; then
+if [[ -n "${GITHUB_USERNAME:-}" && -n "${GITHUB_TOKEN:-}" ]]; then
   authArgs=(-u "$GITHUB_USERNAME:$GITHUB_TOKEN")
-elif [[ -n "$GITHUB_ACTOR" && -n "$GITHUB_TOKEN" ]]; then
+elif [[ -n "${GITHUB_ACTOR:-}" && -n "${GITHUB_TOKEN:-}" ]]; then
   authArgs=(-u "$GITHUB_ACTOR:$GITHUB_TOKEN")
 fi
 
