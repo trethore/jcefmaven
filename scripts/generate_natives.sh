@@ -26,10 +26,11 @@ export release_download_url=$4
 
 #Fetch artifact
 echo "Fetching artifact for $2..."
-curl -s -L -o artifact.tar.gz $4
+curl -fsSL -o artifact.tar.gz "$4"
 
 #Extract artifact
 echo "Extracting..."
+gzip -t artifact.tar.gz
 tar -zxf artifact.tar.gz
 rm artifact.tar.gz
 

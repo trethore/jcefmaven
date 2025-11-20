@@ -28,8 +28,8 @@ cd "$( dirname "$0" )"
 rm -rf out
 mkdir -p out
 
-#Run docker build (force rebuild to pick up script changes)
-docker compose -f docker-compose.yml up --build
+#Run docker build (force rebuild to pick up script changes) and propagate container exit code
+docker compose -f docker-compose.yml up --build --abort-on-container-exit --exit-code-from generate-artifacts
 
 #Fix permissions on exported artifacts coming from the container
 docker compose -f docker-compose.yml run --rm --no-deps --entrypoint chown generate-artifacts -R "${HOST_UID}:${HOST_GID}" /jcefout
