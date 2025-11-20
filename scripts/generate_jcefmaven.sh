@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 #CD to base dir of this repository
 cd "$( dirname "$0" )" && cd ..

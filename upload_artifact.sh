@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 if [ ! $# -eq 5 ]
   then
@@ -12,9 +13,19 @@ repoId=$2
 groupId=$3
 artifactId=$4
 version=$5
+artifactBase="${artifactId}-${version}"
 
 #CD to the upload dir
 cd "$( dirname "$0" )" && cd upload
+
+if [ ! -f "${artifactBase}.jar" ]; then
+  echo "ERROR: ${artifactBase}.jar not found in $(pwd); aborting upload."
+  exit 1
+fi
+if [ ! -f "${artifactBase}.pom" ]; then
+  echo "ERROR: ${artifactBase}.pom not found in $(pwd); aborting upload."
+  exit 1
+fi
 
 pathGroupId=$(sed 's|\.|\/|g' <<< $groupId)
 targetUrl=$repoUrl/$pathGroupId/$artifactId/$version/$artifactId-$version.jar
@@ -35,4 +46,3 @@ fi
 
 echo "Pushing $artifactId-$version..."
 mvn deploy:deploy-file -Durl=$repoUrl -DrepositoryId=$repoId -DpomFile=$artifactId-$version.pom -Dfile=$artifactId-$version.jar -Djavadoc=$artifactId-$version-javadoc.jar -Dsources=$artifactId-$version-sources.jar
-

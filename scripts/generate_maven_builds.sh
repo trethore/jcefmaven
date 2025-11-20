@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 if [ ! $# -eq 2 ]
   then
@@ -79,5 +80,4 @@ echo "###########################################"
 echo "# Creating native build for windows-arm64 #"
 echo "###########################################"
 ./generate_natives.sh win64 windows-arm64 $release_tag $download_url_windows_arm64
-
 

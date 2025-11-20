@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 if [ ! $# -eq 2 ]
   then
