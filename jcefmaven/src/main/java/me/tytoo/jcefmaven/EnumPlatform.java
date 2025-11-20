@@ -64,11 +64,13 @@ public enum EnumPlatform {
             }
         }
         //No platform matched
-        String supported = "";
+        StringBuilder supported = new StringBuilder();
         for (EnumPlatform platform : values()) {
-            supported += platform.name() + "(" +
-                    PROPERTY_OS_NAME + ": " + Arrays.toString(platform.osMatch) + ", " +
-                    PROPERTY_OS_ARCH + ": " + Arrays.toString(platform.archMatch) + ")\n";
+            supported.append(platform.name())
+                    .append("(")
+                    .append(PROPERTY_OS_NAME).append(": ").append(Arrays.toString(platform.osMatch)).append(", ")
+                    .append(PROPERTY_OS_ARCH).append(": ").append(Arrays.toString(platform.archMatch))
+                    .append(")\n");
         }
         LOGGER.log(Level.SEVERE, "Can not detect your current platform. Is it supported?\n" +
                 "If you think that this is in error, please open an issue " +
@@ -86,24 +88,14 @@ public enum EnumPlatform {
     private boolean matches(String osName, String osArch) {
         Objects.requireNonNull(osName, "osName cannot be null");
         Objects.requireNonNull(osArch, "osArch cannot be null");
-        //Search for a correct OS match
-        boolean m = false;
-        for (String os : osMatch) {
-            if (osName.toLowerCase(Locale.ENGLISH).contains(os)) {
-                m = true; //Found one
-                break;
-            }
+        String lowerName = osName.toLowerCase(Locale.ENGLISH);
+        String lowerArch = osArch.toLowerCase(Locale.ENGLISH);
+        boolean osMatches = Arrays.stream(osMatch)
+                .anyMatch(lowerName::contains);
+        if (!osMatches) {
+            return false;
         }
-        if (!m) {
-            return false; //OS mismatch
-        }
-        //Search for a correct architecture match
-        for (String arch : archMatch) {
-            if (osArch.toLowerCase(Locale.ENGLISH).equals(arch)) {
-                return true; //Also found matching arch
-            }
-        }
-        return false; //Found no matching arch
+        return Arrays.stream(archMatch).anyMatch(lowerArch::equals);
     }
 
     /**

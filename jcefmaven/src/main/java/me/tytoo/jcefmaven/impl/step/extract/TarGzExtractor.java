@@ -4,7 +4,13 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,35 +28,42 @@ public class TarGzExtractor {
     public static void extractTarGZ(File installDir, InputStream in) throws IOException {
         Objects.requireNonNull(installDir, "installDir cannot be null");
         Objects.requireNonNull(in, "in cannot be null");
-        GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(in);
-        try (TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
+        Path installPath = installDir.toPath().toAbsolutePath().normalize();
+        try (InputStream gzipIn = new GzipCompressorInputStream(in);
+             TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
             TarArchiveEntry entry;
 
-            while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
-                File f = new File(installDir, entry.getName());
+            while ((entry = tarIn.getNextTarEntry()) != null) {
+                Path target = installPath.resolve(entry.getName()).normalize();
+                if (!target.startsWith(installPath)) {
+                    throw new IOException("Refusing to write outside installation directory: " + entry.getName());
+                }
                 if (entry.isDirectory()) {
-                    boolean created = f.mkdir();
-                    if (!created) {
-                        LOGGER.log(Level.SEVERE, "Unable to create directory '%s', during extraction of archive contents.\n",
-                                f.getAbsolutePath());
-                    } else {
-                        if ((entry.getMode() & 0111) != 0 && !f.setExecutable(true, false)) {
-                            LOGGER.log(Level.SEVERE, "Unable to mark directory '%s' executable, during extraction of archive contents.\n",
-                                    f.getAbsolutePath());
-                        }
+                    try {
+                        Files.createDirectories(target);
+                    } catch (IOException e) {
+                        LOGGER.log(Level.SEVERE, String.format("Unable to create directory '%s' during extraction.",
+                                target), e);
+                    }
+                    if ((entry.getMode() & 0111) != 0 && !target.toFile().setExecutable(true, false)) {
+                        LOGGER.log(Level.SEVERE, String.format("Unable to mark directory '%s' executable during extraction.",
+                                target));
                     }
                 } else {
                     int count;
                     byte[] data = new byte[BUFFER_SIZE];
-                    try (BufferedOutputStream dest = new BufferedOutputStream(
-                            new FileOutputStream(f, false), BUFFER_SIZE)) {
+                    if (target.getParent() != null) {
+                        Files.createDirectories(target.getParent());
+                    }
+                    try (OutputStream dest = new BufferedOutputStream(
+                            Files.newOutputStream(target), BUFFER_SIZE)) {
                         while ((count = tarIn.read(data, 0, BUFFER_SIZE)) != -1) {
                             dest.write(data, 0, count);
                         }
                     }
-                    if ((entry.getMode() & 0111) != 0 && !f.setExecutable(true, false)) {
-                        LOGGER.log(Level.SEVERE, "Unable to mark file '%s' executable, during extraction of archive contents.\n",
-                                f.getAbsolutePath());
+                    if ((entry.getMode() & 0111) != 0 && !target.toFile().setExecutable(true, false)) {
+                        LOGGER.log(Level.SEVERE, String.format("Unable to mark file '%s' executable during extraction.",
+                                target));
                     }
                 }
             }

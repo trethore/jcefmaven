@@ -2,10 +2,16 @@ package me.tytoo.jcefmaven;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 import org.cef.CefApp;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 
@@ -17,6 +23,8 @@ import java.util.Objects;
  */
 public class CefBuildInfo {
     private static final Gson GSON = new Gson();
+    private static final Type MAP_TYPE = new TypeToken<Map<String, Object>>() {
+    }.getType();
     private static CefBuildInfo LOCAL_BUILD_INFO = null;
     private final String jcefUrl;
     private final String releaseTag;
@@ -59,13 +67,14 @@ public class CefBuildInfo {
     }
 
     private static CefBuildInfo loadData(InputStream in) throws IOException {
-        Map object;
-        try {
-            object = GSON.fromJson(new InputStreamReader(in), Map.class);
+        Map<String, Object> object;
+        try (InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+            object = GSON.fromJson(reader, MAP_TYPE);
         } catch (JsonParseException e) {
             throw new IOException("Invalid json content in build_meta.json", e);
-        } finally {
-            in.close();
+        }
+        if (object == null) {
+            throw new IOException("Invalid json content in build_meta.json");
         }
         return new CefBuildInfo(
                 Objects.requireNonNull(object.get("jcef_url"), "No jcef_url specified in build_meta.json").toString(),

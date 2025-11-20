@@ -157,14 +157,14 @@ CefVersion cefVersion = cefApp.getVersion();
 
 ## Requirements
 
-- Java 8 or later
+- Java 17 or later
 
 ## Limitations
 
 - No OSR mode supported on win-arm64 (no jogamp)
 - `CefApp.addAppHandler(...)` should not be used. Use `builder.setAppHandler(...)` instead (requires a
   `CefMavenAppHandlerAdapter`)
-- To run on JDK 16 or later:
+- To run on JDK 17 or later:
 
 To use on MacOSX, add the following JVM flags:
 

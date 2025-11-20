@@ -1,12 +1,26 @@
 package me.tytoo.jcefmaven.impl.step.fetch;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import me.tytoo.jcefmaven.CefBuildInfo;
 import me.tytoo.jcefmaven.EnumPlatform;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -22,7 +36,12 @@ import java.util.logging.Logger;
  */
 public class PackageDownloader {
     private static final Gson GSON = new Gson();
+    private static final Type MAP_TYPE = new TypeToken<Map<String, Object>>() {
+    }.getType();
     private static final Logger LOGGER = Logger.getLogger(PackageDownloader.class.getName());
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
 
     private static final int BUFFER_SIZE = 16 * 1024;
 
@@ -37,11 +56,11 @@ public class PackageDownloader {
             throw new RuntimeException("mirrors can not be empty");
         }
 
-        //Create target file
-        if (!destination.createNewFile()) {
-            throw new IOException("Could not create target file " + destination.getAbsolutePath());
+        Path destinationPath = destination.toPath();
+        if (destinationPath.getParent() != null) {
+            Files.createDirectories(destinationPath.getParent());
         }
-        //Load maven version
+
         String mvn_version = loadJCefMavenVersion();
 
         //Try all mirrors
@@ -52,48 +71,54 @@ public class PackageDownloader {
                     .replace("{tag}", info.getReleaseTag())
                     .replace("{mvn_version}", mvn_version);
             try {
-                //Open connection to mirror
-                URL url = new URL(m);
-                HttpURLConnection uc = (HttpURLConnection) url.openConnection();
-                try (InputStream in = uc.getInputStream()) {
-                    if (uc.getResponseCode() != 200) {
-                        LOGGER.log(Level.WARNING, "Request to mirror failed with code " + uc.getResponseCode()
-                                + " from server: " + m);
+                Files.deleteIfExists(destinationPath);
+                Files.createFile(destinationPath);
+                HttpRequest request = HttpRequest.newBuilder(URI.create(m)).GET().build();
+                HttpResponse<InputStream> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
+                try (InputStream body = response.body()) {
+                    int status = response.statusCode();
+                    if (status != 200) {
+                        LOGGER.log(Level.WARNING, "Request to mirror failed with code " + status + " from server: " + m);
                         continue;
                     }
-                    long length = uc.getContentLengthLong();
-                    //Transfer data
-                    try (FileOutputStream fos = new FileOutputStream(destination)) {
-                        long progress = 0;
+
+                    long length = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
+                    if (length <= 0) {
+                        progressConsumer.accept(-1f);
+                    } else {
                         progressConsumer.accept(0f);
+                    }
+
+                    try (InputStream in = new BufferedInputStream(body);
+                         OutputStream out = new BufferedOutputStream(
+                                 Files.newOutputStream(destinationPath, StandardOpenOption.TRUNCATE_EXISTING), BUFFER_SIZE)) {
                         byte[] buffer = new byte[BUFFER_SIZE];
                         long transferred = 0;
+                        float lastProgress = -1f;
                         int r;
                         while ((r = in.read(buffer)) > 0) {
-                            fos.write(buffer, 0, r);
+                            out.write(buffer, 0, r);
                             transferred += r;
-                            long newprogress = transferred * 100 / length;
-                            if (newprogress > progress) {
-                                progress = newprogress;
-                                progressConsumer.accept((float) progress);
+                            if (length > 0) {
+                                float progress = (float) (transferred * 100.0 / length);
+                                if (progress - lastProgress >= 1f) {
+                                    lastProgress = progress;
+                                    progressConsumer.accept(Math.min(progress, 100f));
+                                }
                             }
                         }
-                        fos.flush();
+                        out.flush();
                     }
-                    //Cleanup
-                    uc.disconnect();
-                    return;
-                } catch (IOException e) {
-                    //Ignore error, will try fallback in follow-up code
-                    lastException = e;
-                    LOGGER.log(Level.WARNING, "Request failed with exception on mirror: " + m
-                            + " (" + e.getClass().getSimpleName()
-                            + (e.getMessage() == null ? "" : (": " + e.getMessage())) + ")");
-                    uc.disconnect();
                 }
+                return;
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Request failed with exception on mirror: " + m, e);
                 lastException = e;
+                try {
+                    Files.deleteIfExists(destinationPath);
+                } catch (IOException ignore) {
+                    // best-effort cleanup
+                }
             }
         }
         //Throw exception if no download was successful
@@ -105,15 +130,15 @@ public class PackageDownloader {
     }
 
     private static String loadJCefMavenVersion() throws IOException {
-        Map object;
+        Map<String, Object> object;
         try (InputStream in = PackageDownloader.class.getResourceAsStream("/jcefmaven_build_meta.json")) {
             if (in == null) {
                 throw new IOException("/jcefmaven_build_meta.json not found on class path");
             }
-            object = GSON.fromJson(new InputStreamReader(in), Map.class);
+            object = GSON.fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), MAP_TYPE);
         } catch (Exception e) {
             throw new IOException("Invalid json content in jcefmaven_build_meta.json", e);
         }
-        return (String) object.get("version");
+        return Objects.requireNonNull(object.get("version"), "No version field in jcefmaven_build_meta.json").toString();
     }
 }

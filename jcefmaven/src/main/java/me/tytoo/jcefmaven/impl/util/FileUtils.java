@@ -1,6 +1,10 @@
 package me.tytoo.jcefmaven.impl.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,14 +19,21 @@ public class FileUtils {
 
     public static void deleteDir(File dir) {
         Objects.requireNonNull(dir, "dir cannot be null");
-        if (!dir.exists()) return;
-        if (dir.isDirectory()) {
-            for (File f : Objects.requireNonNull(dir.listFiles(), "Could not read contents of " + dir.getAbsolutePath())) {
-                deleteDir(f);
-            }
+        Path directory = dir.toPath();
+        if (!Files.exists(directory)) {
+            return;
         }
-        if (!dir.delete()) {
-            LOGGER.log(Level.WARNING, "Could not delete " + dir.getAbsolutePath());
+        try (var walk = Files.walk(directory)) {
+            walk.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException e) {
+                            LOGGER.log(Level.WARNING, "Could not delete " + path, e);
+                        }
+                    });
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Could not delete " + directory, e);
         }
     }
 }

@@ -11,10 +11,12 @@ import me.tytoo.jcefmaven.impl.util.macos.UnquarantineUtil;
 import org.cef.CefApp;
 import org.cef.CefSettings;
 
+import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -217,25 +219,30 @@ public class CefAppBuilder {
             //Perform install
             //Clear install dir
             FileUtils.deleteDir(this.installDir);
-            if (!this.installDir.mkdirs()) throw new IOException("Could not create installation directory");
+            Files.createDirectories(this.installDir.toPath());
             //Fetch a native input stream
-            InputStream nativesIn = PackageClasspathStreamer.streamNatives(
-                    CefBuildInfo.fromClasspath(), EnumPlatform.getCurrentPlatform());
-            try {
-                boolean downloading = false;
-                if (nativesIn == null) {
-                    this.progressHandler.handleProgress(EnumProgress.DOWNLOADING, EnumProgress.NO_ESTIMATION);
-                    downloading = true;
-                    File download = new File(this.installDir, "download.zip.temp");
-                    PackageDownloader.downloadNatives(
-                            CefBuildInfo.fromClasspath(), EnumPlatform.getCurrentPlatform(),
-                            download, f -> this.progressHandler.handleProgress(EnumProgress.DOWNLOADING, f),
-                            getMirrors());
-                    nativesIn = new ZipInputStream(new FileInputStream(download));
+            CefBuildInfo buildInfo = CefBuildInfo.fromClasspath();
+            EnumPlatform platform = EnumPlatform.getCurrentPlatform();
+            InputStream bundledNatives = PackageClasspathStreamer.streamNatives(buildInfo, platform);
+            if (bundledNatives != null) {
+                this.progressHandler.handleProgress(EnumProgress.EXTRACTING, EnumProgress.NO_ESTIMATION);
+                try (InputStream nativesIn = bundledNatives) {
+                    TarGzExtractor.extractTarGZ(this.installDir, nativesIn);
+                }
+            } else {
+                this.progressHandler.handleProgress(EnumProgress.DOWNLOADING, EnumProgress.NO_ESTIMATION);
+                Path download = this.installDir.toPath().resolve("download.zip.temp");
+                PackageDownloader.downloadNatives(
+                        buildInfo, platform,
+                        download.toFile(), f -> this.progressHandler.handleProgress(EnumProgress.DOWNLOADING, f),
+                        getMirrors());
+                this.progressHandler.handleProgress(EnumProgress.EXTRACTING, EnumProgress.NO_ESTIMATION);
+                try (ZipInputStream zipIn = new ZipInputStream(new BufferedInputStream(Files.newInputStream(download)))) {
                     ZipEntry entry;
                     boolean found = false;
-                    while ((entry = ((ZipInputStream) nativesIn).getNextEntry()) != null) {
+                    while ((entry = zipIn.getNextEntry()) != null) {
                         if (entry.getName().endsWith(".tar.gz")) {
+                            TarGzExtractor.extractTarGZ(this.installDir, zipIn);
                             found = true;
                             break;
                         }
@@ -243,25 +250,14 @@ public class CefAppBuilder {
                     if (!found) {
                         throw new IOException("Downloaded artifact did not contain a .tar.gz archive");
                     }
-                }
-                //Extract a native bundle
-                this.progressHandler.handleProgress(EnumProgress.EXTRACTING, EnumProgress.NO_ESTIMATION);
-                TarGzExtractor.extractTarGZ(this.installDir, nativesIn);
-                if (downloading) {
-                    if (!new File(this.installDir, "download.zip.temp").delete()) {
-                        throw new IOException("Could not remove downloaded temp file");
-                    }
-                }
-            } finally {
-                // make sure nativesIn is closed if any of the above fails
-                if (nativesIn != null) {
-                    nativesIn.close();
+                } finally {
+                    Files.deleteIfExists(download);
                 }
             }
             //Install native bundle
             this.progressHandler.handleProgress(EnumProgress.INSTALL, EnumProgress.NO_ESTIMATION);
             //Remove quarantine on macosx
-            if (EnumPlatform.getCurrentPlatform().getOs().isMacOSX()) {
+            if (platform.getOs().isMacOSX()) {
                 UnquarantineUtil.unquarantine(this.installDir);
             }
             //Lock installation
