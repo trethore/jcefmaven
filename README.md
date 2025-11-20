@@ -54,7 +54,7 @@ resolving dependencies.
         <dependency>
             <groupId>me.tytoo</groupId>
             <artifactId>jcefmaven</artifactId>
-            <version>141.0.10</version>
+            <version>141.0.10-mc1</version>
         </dependency>
     </dependencies>
 </project>
@@ -74,7 +74,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'me.tytoo:jcefmaven:141.0.10'
+    implementation 'me.tytoo:jcefmaven:141.0.10-mc1'
 }
 ```
 
@@ -157,14 +157,14 @@ CefVersion cefVersion = cefApp.getVersion();
 
 ## Requirements
 
-- Java 17 or later
+- Java 8 or later
 
 ## Limitations
 
 - No OSR mode supported on win-arm64 (no jogamp)
 - `CefApp.addAppHandler(...)` should not be used. Use `builder.setAppHandler(...)` instead (requires a
   `CefMavenAppHandlerAdapter`)
-- To run on JDK 17 or later:
+- To run on JDK 16 or later:
 
 To use on MacOSX, add the following JVM flags:
 
