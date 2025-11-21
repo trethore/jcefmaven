@@ -35,7 +35,7 @@ cd api
 #Relocate and prune the files for maven packaging
 echo "Building api binaries..."
 cp ../dl/bin/jcef_app.app/Contents/Java/jcef.jar jcef.jar
-unzip jcef.jar
+unzip -q jcef.jar
 rm jcef.jar
 cp ../dl/LICENSE.txt LICENSE.txt
 ./../../scripts/fill_template.sh ../../templates/api/README.txt README.txt
@@ -72,7 +72,7 @@ cd src
 
 #Fetch from git, relocate and prune the files for maven packaging
 echo "Building api sources..."
-git clone $jcef_repository jcef
+git clone -q $jcef_repository jcef
 cd jcef
 git checkout $jcef_commit_long
 cd ..

@@ -66,7 +66,7 @@ mkdir compile
 cp -r ../templates/natives/src compile
 ./../scripts/fill_template.sh ../templates/natives/src/main/java/me/tytoo/jcefmaven/CefNativeBundle.java compile/src/main/java/me/tytoo/jcefmaven/CefNativeBundle.java
 cd compile
-mvn clean package source:jar javadoc:jar
+mvn -B -ntp -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn clean package source:jar javadoc:jar
 cd ..
 
 echo "Exporting artifacts (2/4)..."

@@ -25,13 +25,13 @@ rm -f jcefmaven/src/main/resources/jcefmaven_build_meta.json
 ./../scripts/fill_template.sh jcefmaven/src/main/resources/jcefmaven_build_meta.json.template jcefmaven/src/main/resources/jcefmaven_build_meta.json
 
 #Install required artifacts to local repo
-mvn install:install-file -Dfile=/jcefout/jogl-all-$jogl_build.jar -DpomFile=/jcefout/jogl-all-$jogl_build.pom
-mvn install:install-file -Dfile=/jcefout/gluegen-rt-$jogl_build.jar -DpomFile=/jcefout/gluegen-rt-$jogl_build.pom
-mvn install:install-file -Dfile=/jcefout/jcef-api-$release_tag.jar -DpomFile=/jcefout/jcef-api-$release_tag.pom
+mvn -B -ntp -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install:install-file -Dfile=/jcefout/jogl-all-$jogl_build.jar -DpomFile=/jcefout/jogl-all-$jogl_build.pom
+mvn -B -ntp -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install:install-file -Dfile=/jcefout/gluegen-rt-$jogl_build.jar -DpomFile=/jcefout/gluegen-rt-$jogl_build.pom
+mvn -B -ntp -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install:install-file -Dfile=/jcefout/jcef-api-$release_tag.jar -DpomFile=/jcefout/jcef-api-$release_tag.pom
 
 #Perform build
 cd jcefmaven
-mvn clean package source:jar javadoc:jar
+mvn -B -ntp -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn clean package source:jar javadoc:jar
 cd ..
 
 ##########################
