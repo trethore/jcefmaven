@@ -45,4 +45,12 @@ if curl "${authArgs[@]}" --output /dev/null --silent --fail -r 0-0 "$targetUrl";
 fi
 
 echo "Pushing $artifactId-$version..."
-mvn deploy:deploy-file -Durl=$repoUrl -DrepositoryId=$repoId -DpomFile=$artifactId-$version.pom -Dfile=$artifactId-$version.jar -Djavadoc=$artifactId-$version-javadoc.jar -Dsources=$artifactId-$version-sources.jar
+# Use batch/CI-friendly Maven output to avoid extremely verbose transfer logs while keeping errors visible.
+mvn -B -ntp -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+  deploy:deploy-file \
+  -Durl=$repoUrl \
+  -DrepositoryId=$repoId \
+  -DpomFile=$artifactId-$version.pom \
+  -Dfile=$artifactId-$version.jar \
+  -Djavadoc=$artifactId-$version-javadoc.jar \
+  -Dsources=$artifactId-$version-sources.jar
