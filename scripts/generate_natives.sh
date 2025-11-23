@@ -39,14 +39,36 @@ echo "Building package..."
 rm -f compile.sh compile.bat README.txt run.sh run.bat
 if [ "$1" == "macos64" ] ; then
   mv bin/jcef_app.app/Contents/Frameworks/* .
-#  mv bin/jcef_app.app/Contents/Java/jogl*.jar .
-#  mv bin/jcef_app.app/Contents/Java/gluegen*.jar .
   mv bin/jcef_app.app/Contents/Java/libjcef.dylib .
 else
   mv bin/lib/$1/* .
-#  mv bin/jogl*.jar .
-#  mv bin/gluegen*.jar .
 fi
+
+# Extract JogAmp natives (gluegen/jogl) from the upstream bundle so OSR works.
+# The upstream tar ships the native jars in bin/, not under bin/lib/$bit, so we
+# need to unpack them explicitly or the DLLs/SOs never make it into our tar.gz.
+extract_jogamp_natives() {
+  local jar
+  for jar in bin/*gluegen-rt-natives*.jar bin/*jogl-all-natives*.jar; do
+    [ -f "$jar" ] || continue
+    echo "Including JogAmp natives from $(basename "$jar")..."
+    unzip -q "$jar" -x "META-INF/*" -d .
+  done
+  # Flatten native binaries to the bundle root so java.library.path can find them.
+  find natives -type f \( -name "gluegen_rt.*" -o -name "jogl_*.*" -o -name "nativewindow_*.*" -o -name "newt_*.*" \) -exec mv -f {} . \; 2>/dev/null || true
+  # Keep jogamp config/resources
+  if [ -d natives ]; then
+    rm -rf natives
+  fi
+}
+extract_jogamp_natives
+
+# Fail fast if we somehow lost the core native we need for JOGL OSR.
+if ! ls gluegen_rt.* >/dev/null 2>&1 && ! ls libgluegen_rt.* >/dev/null 2>&1; then
+  echo "ERROR: gluegen_rt native was not bundled; aborting." >&2
+  exit 1
+fi
+
 rm -rf bin docs tests
 
 #Generate a readme file
