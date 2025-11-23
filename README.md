@@ -54,7 +54,7 @@ resolving dependencies.
         <dependency>
             <groupId>me.tytoo</groupId>
             <artifactId>jcefmaven</artifactId>
-            <version>141.0.10-mc10</version>
+            <version>141.0.10-mc11</version>
         </dependency>
     </dependencies>
 </project>
@@ -74,7 +74,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'me.tytoo:jcefmaven:141.0.10-mc10'
+    implementation 'me.tytoo:jcefmaven:141.0.10-mc11'
 }
 ```
 
