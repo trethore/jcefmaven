@@ -40,8 +40,12 @@ rm -f compile.sh compile.bat README.txt run.sh run.bat
 if [ "$1" == "macos64" ] ; then
   mv bin/jcef_app.app/Contents/Frameworks/* .
   mv bin/jcef_app.app/Contents/Java/libjcef.dylib .
+  JOGAMP_NATIVE_JARS="bin/jcef_app.app/Contents/Java/*gluegen-rt-natives*.jar bin/jcef_app.app/Contents/Java/*jogl-all-natives*.jar"
+  JOGAMP_JARS_DIR="bin/jcef_app.app/Contents/Java"
 else
   mv bin/lib/$1/* .
+  JOGAMP_NATIVE_JARS="bin/*gluegen-rt-natives*.jar bin/*jogl-all-natives*.jar"
+  JOGAMP_JARS_DIR="bin"
 fi
 
 # Extract JogAmp natives (gluegen/jogl) from the upstream bundle so OSR works.
@@ -49,7 +53,7 @@ fi
 # need to unpack them explicitly or the DLLs/SOs never make it into our tar.gz.
 extract_jogamp_natives() {
   local jar
-  for jar in bin/*gluegen-rt-natives*.jar bin/*jogl-all-natives*.jar; do
+  for jar in $JOGAMP_NATIVE_JARS; do
     [ -f "$jar" ] || continue
     echo "Including JogAmp natives from $(basename "$jar")..."
     unzip -q "$jar" -x "META-INF/*" -d .
