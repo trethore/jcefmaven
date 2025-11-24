@@ -54,3 +54,7 @@ mvn -B -ntp -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMave
   -Dfile=$artifactId-$version.jar \
   -Djavadoc=$artifactId-$version-javadoc.jar \
   -Dsources=$artifactId-$version-sources.jar
+
+# Tidy up any legacy bundle artifacts if present
+rm -rf me
+rm -f central-bundle.zip
