@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -euo pipefail
 
 if [ ! $# -eq 1 ]
@@ -54,7 +53,6 @@ stage_artifact "$artifact-$jogl_build-javadoc.jar" "$artifact-$jogl_build-javado
 
 echo "Generating pom..."
 ./../scripts/fill_template.sh ../templates/$artifact/pom.xml $artifact-$jogl_build.pom
-
 echo "Exporting artifacts..."
 mv $artifact-$jogl_build.jar /jcefout
 mv $artifact-$jogl_build-sources.jar /jcefout
