@@ -54,17 +54,16 @@ extract_jogamp_natives() {
     echo "Including JogAmp natives from $(basename "$jar")..."
     unzip -q "$jar" -x "META-INF/*" -d .
   done
-  # Flatten native binaries to the bundle root so java.library.path can find them.
-  find natives -type f \( -name "gluegen_rt.*" -o -name "jogl_*.*" -o -name "nativewindow_*.*" -o -name "newt_*.*" \) -exec mv -f {} . \; 2>/dev/null || true
-  # Keep jogamp config/resources
+  # Flatten everything from "natives" to the bundle root so java.library.path can find it.
   if [ -d natives ]; then
+    find natives -type f -exec mv -f {} . \; 2>/dev/null || true
     rm -rf natives
   fi
 }
 extract_jogamp_natives
 
 # Fail fast if we somehow lost the core native we need for JOGL OSR.
-if ! ls gluegen_rt.* >/dev/null 2>&1 && ! ls libgluegen_rt.* >/dev/null 2>&1; then
+if ! ls *gluegen*rt* >/dev/null 2>&1; then
   echo "ERROR: gluegen_rt native was not bundled; aborting." >&2
   exit 1
 fi
