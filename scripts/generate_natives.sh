@@ -12,8 +12,11 @@ if [ ! $# -eq 4 ]
     exit 1
 fi
 
+script_dir=$(cd "$( dirname "$0" )" && pwd)
+. "$script_dir/lib/retry.sh"
+
 #CD to base dir of this repository
-cd "$( dirname "$0" )" && cd ..
+cd "$script_dir" && cd ..
 
 #Clear build dir
 rm -rf build
@@ -26,7 +29,7 @@ export release_download_url=$4
 
 #Fetch artifact
 echo "Fetching artifact for $2..."
-curl -fsSL -o artifact.tar.gz "$4"
+retry_curl -fsSL -o artifact.tar.gz "$4"
 
 #Extract artifact
 echo "Extracting..."

@@ -11,8 +11,11 @@ if [ ! $# -eq 4 ]
     exit 1
 fi
 
+script_dir=$(cd "$( dirname "$0" )" && pwd)
+. "$script_dir/lib/retry.sh"
+
 #CD to release_info dir
-cd "$( dirname "$0" )"
+cd "$script_dir"
 
 #Set build info
 . set_build_info.sh $1 $4
@@ -170,7 +173,7 @@ echo "release_name=JCEF Maven $mvn_version" >> $GITHUB_ENV
 ) > ../release_message.md
 
 #Add build_meta.json
-curl -s -L -o ../build_meta.json $1
+retry_curl -s -L -o ../build_meta.json "$1"
 
 #Cleanup
 cd ..

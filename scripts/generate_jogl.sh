@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -euo pipefail
 
 if [ ! $# -eq 1 ]
@@ -12,6 +11,8 @@ fi
 
 artifact=$1
 repo_root=$(cd "$( dirname "$0" )/.." && pwd)
+script_dir=$(cd "$( dirname "$0" )" && pwd)
+. "$script_dir/lib/retry.sh"
 maven_repo_base="https://jogamp.org/deployment/maven"
 case "$artifact" in
   jogl-all)
@@ -37,7 +38,7 @@ stage_artifact () {
   else
     local url="$remote_base/$name"
     echo "Downloading $url"
-    curl -fsSL "$url" -o "$dest"
+    retry_curl -fsSL "$url" -o "$dest"
   fi
 }
 
@@ -54,7 +55,6 @@ stage_artifact "$artifact-$jogl_build-javadoc.jar" "$artifact-$jogl_build-javado
 
 echo "Generating pom..."
 ./../scripts/fill_template.sh ../templates/$artifact/pom.xml $artifact-$jogl_build.pom
-
 echo "Exporting artifacts..."
 mv $artifact-$jogl_build.jar /jcefout
 mv $artifact-$jogl_build-sources.jar /jcefout

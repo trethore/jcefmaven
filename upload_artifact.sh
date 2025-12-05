@@ -16,7 +16,9 @@ version=$5
 artifactBase="${artifactId}-${version}"
 
 #CD to the upload dir
-cd "$( dirname "$0" )" && cd upload
+script_dir=$(cd "$( dirname "$0" )" && pwd)
+. "$script_dir/scripts/lib/retry.sh"
+cd "$script_dir" && cd upload
 
 if [ ! -f "${artifactBase}.jar" ]; then
   echo "ERROR: ${artifactBase}.jar not found in $(pwd); aborting upload."
@@ -39,7 +41,7 @@ elif [[ -n "${GITHUB_ACTOR:-}" && -n "${GITHUB_TOKEN:-}" ]]; then
 fi
 
 #Prevent re-publishing versions that already exist
-if curl "${authArgs[@]}" --output /dev/null --silent --fail -r 0-0 "$targetUrl"; then
+if retry_curl "${authArgs[@]}" --output /dev/null --silent --fail -r 0-0 "$targetUrl"; then
     echo "Artifact $artifactId-$version already pushed - skipping!"
     exit 0
 fi
@@ -54,3 +56,7 @@ mvn -B -ntp -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMave
   -Dfile=$artifactId-$version.jar \
   -Djavadoc=$artifactId-$version-javadoc.jar \
   -Dsources=$artifactId-$version-sources.jar
+
+# Tidy up any legacy bundle artifacts if present
+rm -rf me
+rm -f central-bundle.zip
