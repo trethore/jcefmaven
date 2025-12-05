@@ -42,7 +42,6 @@ echo "Uploading GitHub Packages artifacts for $mvn_version..."
 
 #Upload windows natives
 ./upload_artifact.sh $repoUrl $repoId me.tytoo jcef-natives-windows-amd64 $release_tag
-./upload_artifact.sh $repoUrl $repoId me.tytoo jcef-natives-windows-arm64 $release_tag
 
 #Upload macosx natives
 ./upload_artifact.sh $repoUrl $repoId me.tytoo jcef-natives-macosx-amd64 $release_tag

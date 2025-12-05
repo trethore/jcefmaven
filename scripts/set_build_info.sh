@@ -33,7 +33,6 @@ allowed_keys=(
   "download_url_macosx_amd64"
   "download_url_macosx_arm64"
   "download_url_windows_amd64"
-  "download_url_windows_arm64"
 )
 
 for key in "${allowed_keys[@]}"; do
