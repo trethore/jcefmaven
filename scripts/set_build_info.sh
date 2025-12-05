@@ -10,7 +10,8 @@ if [ ! $# -eq 2 ]
     exit 1
 fi
 
-script_dir=$(cd "$( dirname "$0" )" && pwd)
+# Resolve directory of this script even when sourced
+script_dir=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 . "$script_dir/lib/retry.sh"
 
 #Print build meta location
