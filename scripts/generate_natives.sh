@@ -28,7 +28,7 @@ export platform=$2
 export release_download_url=$4
 
 #Fetch artifact
-echo "Fetching artifact for $2..."
+echo "Fetching artifact for $2 from $4..."
 retry_curl -fsSL -o artifact.tar.gz "$4"
 
 #Extract artifact
