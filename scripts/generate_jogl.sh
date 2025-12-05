@@ -11,6 +11,8 @@ fi
 
 artifact=$1
 repo_root=$(cd "$( dirname "$0" )/.." && pwd)
+script_dir=$(cd "$( dirname "$0" )" && pwd)
+. "$script_dir/lib/retry.sh"
 maven_repo_base="https://jogamp.org/deployment/maven"
 case "$artifact" in
   jogl-all)
@@ -36,7 +38,7 @@ stage_artifact () {
   else
     local url="$remote_base/$name"
     echo "Downloading $url"
-    curl -fsSL "$url" -o "$dest"
+    retry_curl -fsSL "$url" -o "$dest"
   fi
 }
 

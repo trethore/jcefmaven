@@ -1,7 +1,10 @@
 #!/bin/bash
 
+script_dir=$(cd "$( dirname "$0" )" && pwd)
+. "$script_dir/lib/retry.sh"
+
 #CD to base dir of this repository
-cd "$( dirname "$0" )" && cd ..
+cd "$script_dir" && cd ..
 
 #Clear build dir
 rm -rf build
@@ -18,7 +21,7 @@ cd dl
 
 #Fetch artifact
 echo "Fetching artifact for $download_url_macosx_amd64..."
-curl -s -L -o artifact.tar.gz $download_url_macosx_amd64
+retry_curl -s -L -o artifact.tar.gz "$download_url_macosx_amd64"
 
 #Extract artifact
 echo "Extracting..."

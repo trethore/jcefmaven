@@ -10,11 +10,14 @@ if [ ! $# -eq 2 ]
     exit 1
 fi
 
+script_dir=$(cd "$( dirname "$0" )" && pwd)
+. "$script_dir/lib/retry.sh"
+
 #Print build meta location
 echo "Initializing for build from $1 for $2..."
 
 #Download build_meta.json and import to local environment
-export $(curl -s -L $1 | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]")
+export $(retry_curl -s -L "$1" | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]")
 
 #Set JOGL information
 export jogl_build=2.5.0
