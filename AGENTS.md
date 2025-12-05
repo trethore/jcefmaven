@@ -18,7 +18,7 @@ platform-specific bundles. Anything inside `out/` or extracted from `libs/` is g
 
 ## Coding Style & Naming Conventions
 
-Target Java 8, use four-space indentation, and keep braces on the same line as declarations (see `CefAppBuilder`).
+Target Java 17, use four-space indentation, and keep braces on the same line as declarations (see `CefAppBuilder`).
 Classes and enums are PascalCase (`EnumPlatform`), members are camelCase, and constants stay SCREAMING_SNAKE_CASE. Guard
 inputs with `Objects.requireNonNull`, expose copies when returning lists or maps, keep new internal logic in the
 existing impl hierarchy (`impl/step`, `impl/progress`, etc.), and leave resource keys kebab-case to match the template
