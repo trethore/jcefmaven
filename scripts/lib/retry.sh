@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+
 # Simple retry wrapper for curl to handle transient network hiccups.
 retry_curl() {
   local attempts=${RETRY_ATTEMPTS:-5}
