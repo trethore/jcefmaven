@@ -6,7 +6,8 @@ retry_curl() {
   local attempts=${RETRY_ATTEMPTS:-5}
   local delay=${RETRY_DELAY:-2}
   local try=1
-  local exit_code=0
+  # Default to failure so we never accidentally return success if curl never runs
+  local exit_code=1
 
   while true; do
     if curl "$@"; then

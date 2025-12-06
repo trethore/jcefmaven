@@ -40,10 +40,14 @@ elif [[ -n "${GITHUB_ACTOR:-}" && -n "${GITHUB_TOKEN:-}" ]]; then
   authArgs=(-u "$GITHUB_ACTOR:$GITHUB_TOKEN")
 fi
 
-#Prevent re-publishing versions that already exist
-if retry_curl "${authArgs[@]}" --output /dev/null --silent --fail -r 0-0 "$targetUrl"; then
-    echo "Artifact $artifactId-$version already pushed - skipping!"
-    exit 0
+#Prevent re-publishing versions that already exist.
+status=$(retry_curl "${authArgs[@]}" -s -o /dev/null -w '%{http_code}' -I "$targetUrl" || true)
+if [[ "$status" == "200" || "$status" == "206" || "$status" == "302" ]]; then
+  echo "Artifact $artifactId-$version already pushed - skipping!"
+  exit 0
+elif [[ -n "$status" && "$status" =~ ^5 ]]; then
+  echo "Artifact existence check got server error (HTTP $status); aborting." >&2
+  exit 1
 fi
 
 echo "Pushing $artifactId-$version..."
